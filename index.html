@@ -170,8 +170,6 @@ Error message and password prompt
 
 <li>$:/core</li>
 
-<li>$:/core/modules/savers/github.js</li>
-
 <li>$:/DefaultTiddlers</li>
 
 <li>$:/GitHub/Branch</li>
@@ -281,6 +279,8 @@ Error message and password prompt
 <li>$:/view</li>
 
 <li>Draft of 'New Tiddler 1'</li>
+
+<li>Draft of 'New Tiddler 4'</li>
 
 <li>FMQs Question Template</li>
 
@@ -10238,128 +10238,6 @@ Error message and password prompt
     }
 }</pre>
 </div>
-<div created="20210614193700991" modified="20210614194505101" module-type="saver" title="$:/core/modules/savers/github.js" type="application/javascript">
-<pre>/*\
-title: $:/core/modules/savers/github.js
-type: application/javascript
-module-type: saver
-
-Saves wiki by pushing a commit to the GitHub v3 REST API
-
-\*/
-(function(){
-
-/*jslint node: true, browser: true */
-/*global $tw: false */
-&quot;use strict&quot;;
-
-/*
-Select the appropriate saver module and set it up
-*/
-var GitHubSaver = function(wiki) {
-	this.wiki = wiki;
-};
-
-GitHubSaver.prototype.save = function(text,method,callback) {
-	var self = this,
-		username = this.wiki.getTiddlerText(&quot;$:/GitHub/Username&quot;),
-		password = $tw.utils.getPassword(&quot;github&quot;),
-		repo = this.wiki.getTiddlerText(&quot;$:/GitHub/Repo&quot;),
-		path = this.wiki.getTiddlerText(&quot;$:/GitHub/Path&quot;,&quot;&quot;),
-		filename = this.wiki.getTiddlerText(&quot;$:/GitHub/Filename&quot;),
-		branch = this.wiki.getTiddlerText(&quot;$:/GitHub/Branch&quot;) || &quot;main&quot;,
-		endpoint = this.wiki.getTiddlerText(&quot;$:/GitHub/ServerURL&quot;) || &quot;https://api.github.com&quot;,
-		headers = {
-			&quot;Accept&quot;: &quot;application/vnd.github.v3+json&quot;,
-			&quot;Content-Type&quot;: &quot;application/json;charset=UTF-8&quot;,
-			&quot;Authorization&quot;: &quot;token &quot; + password,
-			&quot;If-None-Match&quot;: &quot;&quot;
-		};
-	// Bail if we don't have everything we need
-	if(!username || !password || !repo || !filename) {
-		return false;
-	}
-	// Make sure the path start and ends with a slash
-	if(path.substring(0,1) !== &quot;/&quot;) {
-		path = &quot;/&quot; + path;
-	}
-	if(path.substring(path.length - 1) !== &quot;/&quot;) {
-		path = path + &quot;/&quot;;
-	}
-	// Compose the base URI
-	var uri = endpoint + &quot;/repos/&quot; + username + &quot;/&quot; + repo + &quot;/contents&quot; + path;
-	// Perform a get request to get the details (inc shas) of files in the same path as our file
-	$tw.utils.httpRequest({
-		url: uri,
-		type: &quot;GET&quot;,
-		headers: headers,
-		data: {
-			ref: branch
-		},
-		callback: function(err,getResponseDataJson,xhr) {
-			var getResponseData,sha = &quot;&quot;;
-			if(err &amp;&amp; xhr.status !== 404) {
-				return callback(err);
-			}
-			if(xhr.status !== 404) {
-				getResponseData = JSON.parse(getResponseDataJson);
-				$tw.utils.each(getResponseData,function(details) {
-					if(details.name === filename) {
-						sha = details.sha;
-					}
-				});
-			}
-			var data = {
-				message: $tw.language.getRawString(&quot;ControlPanel/Saving/GitService/CommitMessage&quot;),
-				content: $tw.utils.base64Encode(text),
-				branch: branch,
-				sha: sha
-			};
-			// Perform a PUT request to save the file
-			$tw.utils.httpRequest({
-				url: uri + filename,
-				type: &quot;PUT&quot;,
-				headers: headers,
-				data: JSON.stringify(data),
-				callback: function(err,putResponseDataJson,xhr) {
-					if(err) {
-						return callback(err);
-					}
-					var putResponseData = JSON.parse(putResponseDataJson);
-					callback(null);
-				}
-			});
-		}
-	});
-	return true;
-};
-
-/*
-Information about this saver
-*/
-GitHubSaver.prototype.info = {
-	name: &quot;github&quot;,
-	priority: 2500,
-	capabilities: [&quot;save&quot;, &quot;autosave&quot;]
-};
-
-/*
-Static method that returns true if this saver is capable of working
-*/
-exports.canSave = function(wiki) {
-	return true;
-};
-
-/*
-Create an instance of this saver
-*/
-exports.create = function(wiki) {
-	return new GitHubSaver(wiki);
-};
-
-})();
-</pre>
-</div>
 <div created="20210507160823412" modified="20210507160823412" title="$:/DefaultTiddlers">
 <pre>[list[$:/StoryList]]</pre>
 </div>
@@ -12243,7 +12121,7 @@ exports.create = function(wiki) {
 <div title="$:/status/RequireReloadDueToPluginChange">
 <pre>no</pre>
 </div>
-<div list="$:/AdvancedSearch $:/core/modules/savers/github.js [[New Tiddler 3]] $:/ControlPanel $:/Import [[Draft of 'New Tiddler 1']] [[FMQs Question Template]] [[Run Script as Server]]" title="$:/StoryList">
+<div list="[[Draft of 'New Tiddler 4']] $:/AdvancedSearch [[New Tiddler 3]] $:/ControlPanel $:/Import [[Draft of 'New Tiddler 1']] [[FMQs Question Template]] [[Run Script as Server]]" title="$:/StoryList">
 <pre></pre>
 </div>
 <div author="NicolasPetton" bag="default" core-version="&gt;=5.1.22" created="20210331185444643" dependents="$:/themes/tiddlywiki/vanilla $:/plugins/nico/notebook-mobile" description="A clean, uncluttered TiddlyWiki theme" list="LICENSE changelog" modified="20210331185444643" name="Notebook theme" plugin-type="theme" revision="0" source="https://github.com/NicolasPetton/Notebook" title="$:/themes/nico/notebook" type="application/json" version="1.4.1">
@@ -12690,6 +12568,9 @@ exports.create = function(wiki) {
 <pre>classic</pre>
 </div>
 <div created="20210610233348622" draft.of="New Tiddler 1" draft.title="FMQ Categories" modified="20210610233357435" tags="" title="Draft of 'New Tiddler 1'">
+<pre></pre>
+</div>
+<div created="20210614194150968" draft.of="New Tiddler 4" draft.title="New Tiddler 4" modified="20210614194150968" tags="" title="Draft of 'New Tiddler 4'">
 <pre></pre>
 </div>
 <div created="20210610173550545" modified="20210610233347095" question-types="Emotional Hobby Family [[The dumbest ever]]" tags="experiments" title="FMQs Question Template">
